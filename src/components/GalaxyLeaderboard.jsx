@@ -108,6 +108,13 @@ const GalaxyCore = ({ students, onSelect }) => {
 const GalaxyLeaderboard = ({ students }) => {
   const [selected, setSelected] = useState(null);
 
+  const getDaysToNextTier = (streakDays) => {
+    if (streakDays >= 21) return 0;
+    if (streakDays >= 14) return 21 - streakDays;
+    if (streakDays >= 7) return 14 - streakDays;
+    return 7 - streakDays;
+  };
+
   const cartoonStars = useMemo(() => {
     return Array.from({ length: 26 }).map((_, i) => ({
       id: i,
@@ -164,6 +171,13 @@ const GalaxyLeaderboard = ({ students }) => {
               <div className="display-comic text-2xl leading-tight">{selected.name}</div>
               <p className="mt-1 text-sm font-black text-black/70">Rank #{selected.rank} • Score {selected.score}</p>
               <p className="mt-2 text-sm font-extrabold">Problems Solved: {selected.problemsSolved}</p>
+              <p className="mt-1 text-sm font-extrabold">Streak: {selected.streakDays} days • Last active: {selected.lastActive}</p>
+              <p className="mt-1 text-sm font-extrabold">Weekly momentum: {selected.weeklyDelta >= 0 ? '+' : ''}{selected.weeklyDelta}</p>
+              <p className="mt-2 inline-flex rounded-md border-[2px] border-black bg-white px-2 py-1 text-xs font-black uppercase">
+                {getDaysToNextTier(selected.streakDays) === 0
+                  ? 'Legend tier unlocked'
+                  : `${getDaysToNextTier(selected.streakDays)} day(s) to next streak badge`}
+              </p>
             </div>
             <button
               onClick={() => setSelected(null)}
