@@ -1,6 +1,8 @@
-import React from 'react';
-import { Code2, BookOpen, Terminal, ExternalLink, Rocket } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Code2, BookOpen, Terminal, ExternalLink, Rocket, Bookmark } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+
+const RESOURCE_STORAGE_KEY = 'gfg_resource_bookmarks_v1';
 
 const resourceCategories = [
   {
@@ -78,6 +80,50 @@ const resourceCategories = [
 ];
 
 const Resources = () => {
+  const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [bookmarks, setBookmarks] = useState(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const raw = window.localStorage.getItem(RESOURCE_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const categories = useMemo(() => ['All', ...resourceCategories.map((c) => c.title)], []);
+
+  const filteredCategories = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return resourceCategories
+      .filter((category) => selectedCategory === 'All' || category.title === selectedCategory)
+      .map((category) => ({
+        ...category,
+        links: category.links.filter((link) => {
+          if (!q) return true;
+          return (
+            link.name.toLowerCase().includes(q) ||
+            link.desc.toLowerCase().includes(q) ||
+            category.title.toLowerCase().includes(q)
+          );
+        }),
+      }))
+      .filter((category) => category.links.length > 0);
+  }, [query, selectedCategory]);
+
+  const bookmarkCount = useMemo(() => Object.values(bookmarks).filter(Boolean).length, [bookmarks]);
+
+  const toggleBookmark = (linkName) => {
+    setBookmarks((prev) => {
+      const next = { ...prev, [linkName]: !prev[linkName] };
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(RESOURCE_STORAGE_KEY, JSON.stringify(next));
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[var(--color-comic-yellow)] px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -91,13 +137,37 @@ const Resources = () => {
             </div>
             <div className="comic-outline-soft inline-flex items-center gap-2 rounded-xl bg-[var(--color-comic-orange)] px-4 py-3 text-white">
               <Rocket size={18} />
-              <span className="font-black">Build mode</span>
+              <span className="font-black">{bookmarkCount} bookmarked</span>
             </div>
           </div>
         </div>
 
+        <div className="mb-6 grid gap-3 rounded-2xl border-[3px] border-black bg-[var(--color-comic-cream)] p-4 md:grid-cols-[1fr_auto]">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search resources"
+            className="rounded-xl border-[3px] border-black bg-white px-4 py-3 text-sm font-bold text-black focus:outline-none"
+          />
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`rounded-xl border-[2px] border-black px-3 py-2 text-xs font-black uppercase ${
+                  selectedCategory === category
+                    ? 'bg-[var(--color-comic-purple)] text-white'
+                    : 'bg-[var(--color-comic-yellow)] text-black'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {resourceCategories.map((category, idx) => (
+          {filteredCategories.map((category, idx) => (
             <ScrollReveal key={idx} delay={idx * 130}>
             <div className="comic-outline h-full rounded-[2rem] bg-[var(--color-comic-cream)] p-6">
               <div
@@ -110,30 +180,34 @@ const Resources = () => {
 
               <div className="mt-5 space-y-3">
                 {category.links.map((link, linkIdx) => (
-                  <a
-                    key={linkIdx}
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="comic-outline-soft block rounded-xl bg-[var(--color-comic-yellow)] p-4"
-                  >
+                  <div key={linkIdx} className="comic-outline-soft block rounded-xl bg-[var(--color-comic-yellow)] p-4">
                     <div className="mb-2 flex items-center justify-between gap-3">
-                      <h3 className="text-base font-black text-black">
+                      <a href={link.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-base font-black text-black hover:underline">
                         {link.name}
-                      </h3>
-                      <ExternalLink
-                        size={16}
-                        className="text-black"
-                      />
+                        <ExternalLink size={16} className="text-black" />
+                      </a>
+                      <button
+                        onClick={() => toggleBookmark(link.name)}
+                        className={`rounded-lg border-[2px] border-black p-1.5 ${bookmarks[link.name] ? 'bg-[var(--color-comic-orange)] text-white' : 'bg-white text-black'}`}
+                        aria-label={`Toggle bookmark for ${link.name}`}
+                      >
+                        <Bookmark size={14} fill={bookmarks[link.name] ? 'currentColor' : 'none'} />
+                      </button>
                     </div>
                     <p className="text-sm font-bold text-black/80">{link.desc}</p>
-                  </a>
+                  </div>
                 ))}
               </div>
             </div>
             </ScrollReveal>
           ))}
         </div>
+
+        {filteredCategories.length === 0 && (
+          <div className="mt-6 rounded-2xl border-[3px] border-black bg-[var(--color-comic-cream)] p-6 text-center text-sm font-black">
+            No resources found for your current search/filter.
+          </div>
+        )}
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ const urls = [
 
 Promise.all(urls.map(url => fetch(url, {method: 'HEAD'})
   .then(res => ({url, ok: res.ok}))
-  .catch(e => ({url, ok: false}))
+  .catch(() => ({url, ok: false}))
 ))
 .then(results => {
   results.forEach(r => console.log(r.url, r.ok ? 'OK' : 'FAIL'));

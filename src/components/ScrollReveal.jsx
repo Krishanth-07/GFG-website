@@ -4,9 +4,8 @@ import { useEffect, useRef, useState } from 'react';
  * Wraps children in a div that fades+slides up when it enters the viewport.
  * @param {string}  className  – extra classes on the wrapper div
  * @param {number}  delay      – transition delay in ms (for stagger effects)
- * @param {string}  as         – HTML tag to render ('div' by default)
  */
-const ScrollReveal = ({ children, className = '', delay = 0, as: Tag = 'div' }) => {
+const ScrollReveal = ({ children, className = '', delay = 0 }) => {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 
@@ -27,7 +26,7 @@ const ScrollReveal = ({ children, className = '', delay = 0, as: Tag = 'div' }) 
   }, []);
 
   return (
-    <Tag
+    <div
       ref={ref}
       className={className}
       style={{
@@ -37,7 +36,7 @@ const ScrollReveal = ({ children, className = '', delay = 0, as: Tag = 'div' }) 
       }}
     >
       {children}
-    </Tag>
+    </div>
   );
 };
 

@@ -14,6 +14,10 @@ const Navbar = ({ isDark, onToggleTheme }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const location = useLocation();
 
+  React.useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
   const allLinks = [
     { name: "Home",        path: "/" },
     { name: "Events",      path: "/events" },

@@ -1,6 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, Send, Sparkles, User } from 'lucide-react';
+import { Bot, Send, Sparkles, User, Trash2 } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+
+const MENTOR_CHAT_STORAGE_KEY = 'gfg_mentor_chat_v1';
+
+const initialMentorMessage = [
+  {
+    role: 'mentor',
+    text: 'Hi, I am your placement mentor bot. Ask me about DSA plan, resume, projects, aptitude, and interview prep.',
+  },
+];
 
 const quickPrompts = [
   'Create a 30-day DSA roadmap',
@@ -33,12 +42,15 @@ const buildMentorReply = (input) => {
 
 const MentorAI = () => {
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([
-    {
-      role: 'mentor',
-      text: 'Hi, I am your placement mentor bot. Ask me about DSA plan, resume, projects, aptitude, and interview prep.',
-    },
-  ]);
+  const [messages, setMessages] = useState(() => {
+    if (typeof window === 'undefined') return initialMentorMessage;
+    try {
+      const raw = window.localStorage.getItem(MENTOR_CHAT_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : initialMentorMessage;
+    } catch {
+      return initialMentorMessage;
+    }
+  });
 
   const canSend = useMemo(() => input.trim().length > 0, [input]);
 
@@ -48,12 +60,26 @@ const MentorAI = () => {
 
     const mentorReply = buildMentorReply(content);
 
-    setMessages((prev) => [
+    setMessages((prev) => {
+      const next = [
       ...prev,
       { role: 'user', text: content },
       { role: 'mentor', text: mentorReply },
-    ]);
+      ];
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(MENTOR_CHAT_STORAGE_KEY, JSON.stringify(next));
+      }
+      return next;
+    });
     setInput('');
+  };
+
+  const clearChat = () => {
+    setMessages(initialMentorMessage);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(MENTOR_CHAT_STORAGE_KEY, JSON.stringify(initialMentorMessage));
+    }
   };
 
   const onSubmit = (e) => {
@@ -85,6 +111,13 @@ const MentorAI = () => {
           <ScrollReveal delay={0}>
             <aside className="comic-outline rounded-[2rem] bg-[var(--color-comic-cream)] p-5">
               <h2 className="display-comic text-2xl">Quick Prompts</h2>
+              <button
+                onClick={clearChat}
+                className="mt-3 inline-flex items-center gap-2 rounded-xl border-[2px] border-black bg-white px-3 py-2 text-xs font-black uppercase"
+              >
+                <Trash2 size={13} />
+                Clear chat
+              </button>
               <div className="mt-4 space-y-3">
                 {quickPrompts.map((prompt) => (
                   <button

@@ -10,6 +10,7 @@ import Blog from './pages/Blog';
 import BlogArticle from './pages/BlogArticle';
 import Club from './pages/Club';
 import MentorAI from './pages/MentorAI';
+import NotFound from './pages/NotFound';
 
 function App() {
   const [isDark, setIsDark] = React.useState(() => {
@@ -42,6 +43,7 @@ function App() {
           <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/club" element={<Club />} />
           <Route path="/mentor" element={<MentorAI />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
     </div>

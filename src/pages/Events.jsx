@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Calendar, Clock, MapPin, ExternalLink, Users, Sparkles } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+
+const EVENT_STORAGE_KEY = 'gfg_events_registration_v1';
 
 const eventsData = [
   {
@@ -38,7 +40,7 @@ const eventsData = [
   }
 ];
 
-const EventCard = ({ event }) => (
+const EventCard = ({ event, isRegistered, onRegister }) => (
   <div className="comic-outline rounded-[2rem] bg-[var(--color-comic-cream)] p-6 transition-transform hover:-translate-y-1">
     <div className="mb-5 flex items-start justify-between gap-3">
       <span className={`rounded-full border-[3px] border-black px-3 py-1 text-xs font-black uppercase ${
@@ -77,15 +79,20 @@ const EventCard = ({ event }) => (
         </div>
       </div>
 
-      <button 
+      <button
+        onClick={() => onRegister(event.id)}
         className={`comic-outline-soft w-full rounded-xl py-3 text-base font-black flex items-center justify-center gap-2 ${
-          event.registrationOpen 
-            ? 'bg-[var(--color-comic-red)] text-white' 
+          event.registrationOpen && !isRegistered
+            ? 'bg-[var(--color-comic-red)] text-white'
+            : isRegistered
+            ? 'bg-[var(--color-comic-purple)] text-white'
             : 'bg-slate-300 text-slate-600 cursor-not-allowed'
         }`}
-        disabled={!event.registrationOpen}
+        disabled={!event.registrationOpen || isRegistered}
       >
-        {event.registrationOpen ? (
+        {isRegistered ? (
+          'Registered'
+        ) : event.registrationOpen ? (
           <>
             Register Now
             <ExternalLink size={18} />
@@ -96,6 +103,49 @@ const EventCard = ({ event }) => (
 );
 
 const Events = () => {
+  const [query, setQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [registrations, setRegistrations] = useState(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const raw = window.localStorage.getItem(EVENT_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const eventTypes = useMemo(() => {
+    return ['All', ...new Set(eventsData.map((event) => event.type))];
+  }, []);
+
+  const filteredEvents = useMemo(() => {
+    return eventsData.filter((event) => {
+      const matchesType = typeFilter === 'All' || event.type === typeFilter;
+      const q = query.trim().toLowerCase();
+      const matchesQuery =
+        !q ||
+        event.title.toLowerCase().includes(q) ||
+        event.description.toLowerCase().includes(q) ||
+        event.location.toLowerCase().includes(q);
+      return matchesType && matchesQuery;
+    });
+  }, [query, typeFilter]);
+
+  const registeredCount = useMemo(() => {
+    return Object.values(registrations).filter(Boolean).length;
+  }, [registrations]);
+
+  const handleRegister = (eventId) => {
+    setRegistrations((prev) => {
+      const next = { ...prev, [eventId]: true };
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(EVENT_STORAGE_KEY, JSON.stringify(next));
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[var(--color-comic-yellow)] px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl relative">
@@ -111,18 +161,52 @@ const Events = () => {
             </div>
             <div className="comic-outline-soft inline-flex items-center gap-2 rounded-xl bg-[var(--color-comic-cream)] px-4 py-3 text-black">
               <Sparkles size={18} />
-              <span className="font-black">Fresh mission board</span>
+              <span className="font-black">{registeredCount} event(s) registered</span>
             </div>
           </div>
         </div>
 
+        <div className="mb-6 grid gap-3 rounded-2xl border-[3px] border-black bg-[var(--color-comic-cream)] p-4 md:grid-cols-[1fr_auto]">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by title, location, or keyword"
+            className="rounded-xl border-[3px] border-black bg-white px-4 py-3 text-sm font-bold text-black focus:outline-none"
+          />
+          <div className="flex flex-wrap gap-2">
+            {eventTypes.map((type) => (
+              <button
+                key={type}
+                onClick={() => setTypeFilter(type)}
+                className={`rounded-xl border-[2px] border-black px-3 py-2 text-xs font-black uppercase ${
+                  typeFilter === type
+                    ? 'bg-[var(--color-comic-red)] text-white'
+                    : 'bg-[var(--color-comic-yellow)] text-black'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {eventsData.map((event, idx) => (
+          {filteredEvents.map((event, idx) => (
             <ScrollReveal key={event.id} delay={idx * 130}>
-              <EventCard event={event} />
+              <EventCard
+                event={event}
+                isRegistered={Boolean(registrations[event.id])}
+                onRegister={handleRegister}
+              />
             </ScrollReveal>
           ))}
         </div>
+
+        {filteredEvents.length === 0 && (
+          <div className="mt-6 rounded-2xl border-[3px] border-black bg-[var(--color-comic-cream)] p-6 text-center text-sm font-black">
+            No events match your current filters.
+          </div>
+        )}
       </div>
     </div>
   );

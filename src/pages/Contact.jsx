@@ -2,17 +2,68 @@ import React, { useState } from "react";
 import { Mail, MessageSquare, MapPin, Send } from "lucide-react";
 import ScrollReveal from "../components/ScrollReveal";
 
+const CONTACT_STORAGE_KEY = "gfg_contact_messages_v1";
+
 const Contact = () => {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [errors, setErrors] = useState({});
+  const [submitNote, setSubmitNote] = useState("");
+  const [submissions, setSubmissions] = useState(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = window.localStorage.getItem(CONTACT_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const validate = () => {
+    const nextErrors = {};
+
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
+      nextErrors.name = "Please enter a valid full name.";
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(formData.email.trim())) {
+      nextErrors.email = "Enter a valid email address.";
+    }
+
+    if (!formData.message.trim() || formData.message.trim().length < 10) {
+      nextErrors.message = "Message should be at least 10 characters.";
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Message sent successfully! We will get back to you soon.");
+    if (!validate()) return;
+
+    const payload = {
+      ...formData,
+      createdAt: new Date().toISOString(),
+    };
+
+    const nextSubmissions = [payload, ...submissions].slice(0, 5);
+    setSubmissions(nextSubmissions);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(nextSubmissions));
+    }
+
+    setSubmitNote("Message sent successfully. We will get back to you soon.");
     setFormData({ name: "", email: "", message: "" });
+    setErrors({});
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   return (
@@ -86,6 +137,7 @@ const Contact = () => {
                     className="w-full rounded-xl border-[3px] border-black bg-[var(--color-comic-cream)] px-4 py-3 text-black placeholder:text-black/50 focus:outline-none"
                     placeholder="John Doe"
                   />
+                  {errors.name && <p className="mt-2 text-xs font-black text-red-200">{errors.name}</p>}
                 </div>
 
                 <div>
@@ -100,6 +152,7 @@ const Contact = () => {
                     className="w-full rounded-xl border-[3px] border-black bg-[var(--color-comic-cream)] px-4 py-3 text-black placeholder:text-black/50 focus:outline-none"
                     placeholder="john@college.edu"
                   />
+                  {errors.email && <p className="mt-2 text-xs font-black text-red-200">{errors.email}</p>}
                 </div>
 
                 <div>
@@ -114,6 +167,7 @@ const Contact = () => {
                     className="w-full resize-none rounded-xl border-[3px] border-black bg-[var(--color-comic-cream)] px-4 py-3 text-black placeholder:text-black/50 focus:outline-none"
                     placeholder="How can we help you?"
                   />
+                  {errors.message && <p className="mt-2 text-xs font-black text-red-200">{errors.message}</p>}
                 </div>
 
                 <button
@@ -123,11 +177,32 @@ const Contact = () => {
                   Join Coding Club
                   <Send size={20} />
                 </button>
+
+                {submitNote && (
+                  <p className="rounded-lg border-[2px] border-black bg-[var(--color-comic-cream)] px-3 py-2 text-center text-xs font-black text-black">
+                    {submitNote}
+                  </p>
+                )}
               </form>
             </div>
           </ScrollReveal>
 
         </div>
+
+        {submissions.length > 0 && (
+          <div className="mt-8 rounded-[2rem] border-[3px] border-black bg-[var(--color-comic-cream)] p-6">
+            <h2 className="display-comic text-2xl">Recent Messages</h2>
+            <div className="mt-4 space-y-3">
+              {submissions.map((item) => (
+                <div key={item.createdAt} className="rounded-xl border-[2px] border-black bg-white p-3">
+                  <div className="text-sm font-black">{item.name} • {item.email}</div>
+                  <div className="mt-1 text-xs font-bold text-black/70">{new Date(item.createdAt).toLocaleString()}</div>
+                  <p className="mt-2 text-sm font-bold text-black/85">{item.message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

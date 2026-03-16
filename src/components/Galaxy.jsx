@@ -3,6 +3,11 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars, Html } from '@react-three/drei';
 import * as THREE from 'three';
 
+const seededRandom = (seed) => {
+  const value = Math.sin(seed * 12.9898) * 43758.5453123;
+  return value - Math.floor(value);
+};
+
 // Mock student data for the galaxy
 const studentData = [
   { id: 1, name: 'Alice Smith', score: 2450, rank: 1, color: '#FFD700' }, // Gold
@@ -19,7 +24,7 @@ const studentData = [
   ...Array.from({ length: 40 }).map((_, i) => ({
     id: i + 11,
     name: `Student ${i + 11}`,
-    score: Math.floor(Math.random() * 1000) + 100,
+    score: Math.floor(seededRandom(i + 1) * 1000) + 100,
     rank: i + 11,
     color: '#64748b'
   }))
@@ -56,7 +61,7 @@ const StarNode = ({ student, position, onClick }) => {
           setHovered(true);
           document.body.style.cursor = 'pointer';
         }}
-        onPointerOut={(e) => {
+        onPointerOut={() => {
           setHovered(false);
           document.body.style.cursor = 'auto';
         }}
@@ -93,14 +98,23 @@ const ParticleSystem = () => {
     const color = new THREE.Color();
     
     for (let i = 0; i < particleCount; i++) {
+      const seed = i + 1;
+      const r1 = seededRandom(seed * 1.11);
+      const r2 = seededRandom(seed * 2.23);
+      const r3 = seededRandom(seed * 3.37);
+      const r4 = seededRandom(seed * 4.49);
+      const r5 = seededRandom(seed * 5.61);
+      const r6 = seededRandom(seed * 6.73);
+      const r7 = seededRandom(seed * 7.89);
+      const r8 = seededRandom(seed * 8.97);
         // Spiral galaxy distribution for particles
-        const radius = Math.random() * 15;
+      const radius = r1 * 15;
         const spinAngle = radius * 0.5;
-        const branchAngle = ((Math.random() > 0.5 ? 0 : 1) * Math.PI) + (Math.random() * 0.5);
+      const branchAngle = ((r2 > 0.5 ? 0 : 1) * Math.PI) + (r3 * 0.5);
         
-        const randomX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 0.5 * radius;
-        const randomY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 0.5 * radius;
-        const randomZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 0.5 * radius;
+      const randomX = Math.pow(r4, 3) * (r5 < 0.5 ? 1 : -1) * 0.5 * radius;
+      const randomY = Math.pow(r6, 3) * (r7 < 0.5 ? 1 : -1) * 0.5 * radius;
+      const randomZ = Math.pow(r8, 3) * (seededRandom(seed * 9.13) < 0.5 ? 1 : -1) * 0.5 * radius;
 
         pos[i * 3] = Math.cos(branchAngle + spinAngle) * radius + randomX;
         pos[i * 3 + 1] = randomY * 0.2; // Flatten the galaxy
@@ -164,7 +178,7 @@ const GalaxySystem = ({ onStudentClick }) => {
       const radius = 1 + Math.sqrt(i) * 0.8; // Spread out
       
       // Add some variance in the Y axis based on distance from center
-      const yVariance = (Math.random() - 0.5) * (radius * 0.2); // Flatter galaxy
+      const yVariance = (seededRandom(i + 500) - 0.5) * (radius * 0.2); // Flatter galaxy
 
       const x = radius * Math.cos(theta);
       const z = radius * Math.sin(theta);
@@ -236,4 +250,3 @@ const Galaxy = ({ onStudentClick }) => {
 };
 
 export default Galaxy;
-export { studentData };

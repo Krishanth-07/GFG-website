@@ -1,10 +1,29 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, CalendarDays, Clock3, Sparkles, Tag } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
 import { blogPosts } from '../data/blogPosts';
 
 const Blog = () => {
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('All');
+
+  const categories = useMemo(() => ['All', ...new Set(blogPosts.map((post) => post.category))], []);
+
+  const filteredPosts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return blogPosts.filter((post) => {
+      const matchCategory = category === 'All' || post.category === category;
+      const matchQuery =
+        !q ||
+        post.title.toLowerCase().includes(q) ||
+        post.excerpt.toLowerCase().includes(q) ||
+        post.content.some((paragraph) => paragraph.toLowerCase().includes(q));
+
+      return matchCategory && matchQuery;
+    });
+  }, [query, category]);
+
   return (
     <div className="min-h-screen bg-[var(--color-comic-yellow)] px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -25,8 +44,35 @@ const Blog = () => {
           </div>
         </ScrollReveal>
 
+        <div className="mb-6 grid gap-3 rounded-2xl border-[3px] border-black bg-[var(--color-comic-cream)] p-4 md:grid-cols-[1fr_auto]">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search blog posts"
+            className="rounded-xl border-[3px] border-black bg-white px-4 py-3 text-sm font-bold text-black focus:outline-none"
+          />
+          <div className="flex flex-wrap gap-2">
+            {categories.map((item) => (
+              <button
+                key={item}
+                onClick={() => setCategory(item)}
+                className={`rounded-xl border-[2px] border-black px-3 py-2 text-xs font-black uppercase ${
+                  item === category
+                    ? 'bg-[var(--color-comic-purple)] text-white'
+                    : 'bg-[var(--color-comic-yellow)] text-black'
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs font-black uppercase tracking-wide text-black/70 md:col-span-2">
+            {filteredPosts.length} post(s) found
+          </p>
+        </div>
+
         <div className="grid gap-6 md:grid-cols-2">
-          {blogPosts.map((post, idx) => (
+          {filteredPosts.map((post, idx) => (
             <ScrollReveal key={post.title} delay={idx * 90}>
               <article className="comic-outline h-full rounded-[2rem] bg-[var(--color-comic-cream)] p-6">
                 <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -58,6 +104,12 @@ const Blog = () => {
             </ScrollReveal>
           ))}
         </div>
+
+        {filteredPosts.length === 0 && (
+          <div className="mt-6 rounded-2xl border-[3px] border-black bg-[var(--color-comic-cream)] p-6 text-center text-sm font-black">
+            No articles match your filters right now.
+          </div>
+        )}
       </div>
     </div>
   );

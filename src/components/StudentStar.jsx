@@ -4,7 +4,7 @@ import * as THREE from 'three';
 
 const SPARK_COUNT = 10;
 
-const Sparks = ({ size, color, starId }) => {
+const Sparks = ({ size, starId }) => {
   const ringARef = useRef(null);
   const ringBRef = useRef(null);
 
@@ -137,7 +137,7 @@ const StudentStar = ({ student, position, maxScore, onSelect }) => {
         />
       </mesh>
 
-      {isTopRank && <Sparks size={size} color={baseColor} starId={student.id} />}
+      {isTopRank && <Sparks size={size} starId={student.id} />}
     </group>
   );
 };
