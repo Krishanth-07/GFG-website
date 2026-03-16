@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { Calendar, Clock, MapPin, ExternalLink, Users, Sparkles } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+import { getEvents } from '../data/contentStore';
 
 const EVENT_STORAGE_KEY = 'gfg_events_registration_v1';
 
-const eventsData = [
+const _UNUSED_eventsData_PLACEHOLDER = [
   {
     id: 1,
     title: 'Geek-a-Thon 2024',
@@ -115,9 +116,11 @@ const Events = () => {
     }
   });
 
+  const eventsData = getEvents();
+
   const eventTypes = useMemo(() => {
     return ['All', ...new Set(eventsData.map((event) => event.type))];
-  }, []);
+  }, [eventsData]);
 
   const filteredEvents = useMemo(() => {
     return eventsData.filter((event) => {

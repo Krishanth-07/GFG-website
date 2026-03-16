@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X, Sun, Moon, LogIn, UserCircle, ShieldCheck, GraduationCap } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 const GFGLogo = ({ className = "w-11 h-11 mb-1" }) => (
   <svg viewBox="0 0 56 56" className={className} aria-hidden="true">
@@ -13,10 +14,16 @@ const GFGLogo = ({ className = "w-11 h-11 mb-1" }) => (
 const Navbar = ({ isDark, onToggleTheme }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const location = useLocation();
+  const { currentUser } = useAuth();
 
   React.useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
+  const dashPath = currentUser ? (currentUser.isAdmin ? '/admin/dashboard' : '/student/dashboard') : '/member/login';
+  const isAuthActive = location.pathname.startsWith('/member') || location.pathname.startsWith('/student') || location.pathname.startsWith('/admin');
+  const AuthIcon = currentUser ? (currentUser.isAdmin ? ShieldCheck : GraduationCap) : LogIn;
+  const authLabel = currentUser ? currentUser.name.split(' ')[0] : 'Login';
+  const authTitle = currentUser ? `Logged in as ${currentUser.name}${currentUser.isAdmin ? ' (Admin)' : ''}` : 'Login';
 
   const allLinks = [
     { name: "Home",        path: "/" },
@@ -49,6 +56,7 @@ const Navbar = ({ isDark, onToggleTheme }) => {
     <nav className="sticky top-0 z-50 border-b-[3px] border-black bg-[var(--color-comic-yellow)]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid py-3 grid-cols-[auto_1fr_auto] items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+          {/* Mobile: hamburger */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="inline-flex h-12 w-12 items-center justify-center rounded-full border-[3px] border-black bg-[var(--color-comic-cream)] shadow-[4px_4px_0_#000] md:hidden"
@@ -57,8 +65,19 @@ const Navbar = ({ isDark, onToggleTheme }) => {
             {isOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
 
-          <div className="hidden md:flex w-full items-center justify-evenly text-[0.95rem]">
-            {leftLinks.map(mkLink)}
+          {/* Desktop left links + dark-mode toggle at the start */}
+          <div className="hidden md:flex w-full items-center gap-3 text-[0.95rem]">
+            <button
+              onClick={onToggleTheme}
+              className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-black bg-[var(--color-comic-cream)] shadow-[3px_3px_0_#000] transition-transform hover:-translate-y-0.5"
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              title={isDark ? "Light mode" : "Dark mode"}
+            >
+              {isDark ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+            <div className="flex flex-1 items-center justify-evenly">
+              {leftLinks.map(mkLink)}
+            </div>
           </div>
 
           <Link to="/" className="justify-self-center flex flex-col items-center text-center leading-none text-black">
@@ -78,16 +97,23 @@ const Navbar = ({ isDark, onToggleTheme }) => {
             </div>
           </Link>
 
-          <div className="hidden md:flex w-full items-center justify-evenly text-[0.95rem]">
-            {rightLinks.map(mkLink)}
-            <button
-              onClick={onToggleTheme}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-black bg-[var(--color-comic-cream)] shadow-[4px_4px_0_#000] transition-transform hover:-translate-y-0.5"
-              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              title={isDark ? "Light mode" : "Dark mode"}
+          {/* Desktop right links + login button at the end */}
+          <div className="hidden md:flex w-full items-center text-[0.95rem]">
+            <div className="flex flex-1 items-center justify-evenly">
+              {rightLinks.map(mkLink)}
+            </div>
+            <Link
+              to={dashPath}
+              className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border-[3px] border-black px-3 py-1.5 text-sm font-extrabold shadow-[3px_3px_0_#000] transition-transform hover:-translate-y-0.5 ${
+                isAuthActive
+                  ? 'bg-[var(--color-comic-red)] text-white'
+                  : 'bg-[var(--color-comic-cream)] text-black'
+              }`}
+              title={authTitle}
             >
-              {isDark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
+              <AuthIcon size={16} />
+              {authLabel}
+            </Link>
           </div>
         </div>
       </div>
@@ -116,6 +142,14 @@ const Navbar = ({ isDark, onToggleTheme }) => {
               </Link>
             );
           })}
+          <Link
+            to={dashPath}
+            onClick={() => setIsOpen(false)}
+            className={`flex items-center gap-2 rounded-2xl border-[3px] border-black px-4 py-3 text-base font-black shadow-[4px_4px_0_#000] transition-transform ${isAuthActive ? "bg-[var(--color-comic-red)] text-white" : "bg-[var(--color-comic-cream)] text-black"}`}
+          >
+            <AuthIcon size={18} />
+            {currentUser ? `My Profile (${authLabel})` : 'Login'}
+          </Link>
         </div>
       </div>
     </nav>

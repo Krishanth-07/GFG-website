@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Clock3, Tag, Heart, ArrowRight } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
-import { blogPosts } from '../data/blogPosts';
+import { getBlogPosts } from '../data/contentStore';
+const blogPosts = getBlogPosts();
 
 const BLOG_STATE_KEY = 'gfg_blog_state_v1';
 

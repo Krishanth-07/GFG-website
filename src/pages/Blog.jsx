@@ -2,13 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, CalendarDays, Clock3, Sparkles, Tag } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
-import { blogPosts } from '../data/blogPosts';
+import { getBlogPosts } from '../data/contentStore';
 
 const Blog = () => {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
+  const blogPosts = getBlogPosts();
 
-  const categories = useMemo(() => ['All', ...new Set(blogPosts.map((post) => post.category))], []);
+  const categories = useMemo(() => ['All', ...new Set(blogPosts.map((post) => post.category))], [blogPosts]);
 
   const filteredPosts = useMemo(() => {
     const q = query.trim().toLowerCase();
