@@ -30,7 +30,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { language, code } = req.body || {};
+    const { language, code, stdin } = req.body || {};
     if (!language || !code) {
       return res.status(400).json({ ok: false, error: 'language and code are required.' });
     }
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     const payload = {
       source_code: code,
       language_id: languageId,
-      stdin: '',
+      stdin: typeof stdin === 'string' ? stdin : '',
     };
 
     let response;

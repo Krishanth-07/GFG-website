@@ -403,6 +403,174 @@ public class Main {
   }
 }`,
   },
+  factorial: {
+  Python: `import sys
+
+def solve(n):
+  ans = 1
+  for i in range(2, n + 1):
+    ans *= i
+  return ans
+
+n = int((sys.stdin.read().strip() or '0'))
+print(solve(n))`,
+  'C++': `#include <bits/stdc++.h>
+using namespace std;
+
+long long solve(int n) {
+  long long ans = 1;
+  for (int i = 2; i <= n; i++) ans *= i;
+  return ans;
+}
+
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+
+  int n = 0;
+  cin >> n;
+  cout << solve(n);
+  return 0;
+}`,
+  Java: `import java.util.*;
+
+public class Main {
+  static long solve(int n) {
+    long ans = 1;
+    for (int i = 2; i <= n; i++) ans *= i;
+    return ans;
+  }
+
+  public static void main(String[] args) {
+    Scanner sc = new Scanner(System.in);
+    int n = sc.hasNextInt() ? sc.nextInt() : 0;
+    System.out.print(solve(n));
+  }
+}`,
+  },
+  'reverse-words': {
+  Python: `import sys
+
+def solve(s):
+  words = s.split()
+  return ' '.join(reversed(words))
+
+print(solve(sys.stdin.read()))`,
+  'C++': `#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+
+  string s((istreambuf_iterator<char>(cin)), istreambuf_iterator<char>());
+  stringstream ss(s);
+  vector<string> words;
+  string w;
+  while (ss >> w) words.push_back(w);
+  for (int i = (int)words.size() - 1; i >= 0; i--) {
+    cout << words[i];
+    if (i > 0) cout << ' ';
+  }
+  return 0;
+}`,
+  Java: `import java.io.*;
+import java.util.*;
+
+public class Main {
+  public static void main(String[] args) throws Exception {
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    StringBuilder sb = new StringBuilder();
+    String line;
+    boolean first = true;
+    while ((line = br.readLine()) != null) {
+      if (!first) sb.append(' ');
+      sb.append(line);
+      first = false;
+    }
+    String[] words = sb.toString().trim().split("\\s+");
+    if (words.length == 1 && words[0].isEmpty()) {
+      System.out.print("");
+      return;
+    }
+    for (int i = words.length - 1; i >= 0; i--) {
+      System.out.print(words[i]);
+      if (i > 0) System.out.print(" ");
+    }
+  }
+}`,
+  },
+  'binary-search': {
+  Python: `import sys
+
+def solve(arr, target):
+  lo, hi = 0, len(arr) - 1
+  while lo <= hi:
+    mid = (lo + hi) // 2
+    if arr[mid] == target:
+      return mid
+    if arr[mid] < target:
+      lo = mid + 1
+    else:
+      hi = mid - 1
+  return -1
+
+data = list(map(int, sys.stdin.read().strip().split()))
+n = data[0] if data else 0
+arr = data[1:1 + n]
+target = data[1 + n] if len(data) > 1 + n else 0
+print(solve(arr, target))`,
+  'C++': `#include <bits/stdc++.h>
+using namespace std;
+
+int solve(const vector<int>& arr, int target) {
+  int lo = 0, hi = (int)arr.size() - 1;
+  while (lo <= hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (arr[mid] == target) return mid;
+    if (arr[mid] < target) lo = mid + 1;
+    else hi = mid - 1;
+  }
+  return -1;
+}
+
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+
+  int n = 0;
+  cin >> n;
+  vector<int> arr(n);
+  for (int i = 0; i < n; i++) cin >> arr[i];
+  int target = 0;
+  cin >> target;
+  cout << solve(arr, target);
+  return 0;
+}`,
+  Java: `import java.util.*;
+
+public class Main {
+  static int solve(int[] arr, int target) {
+    int lo = 0, hi = arr.length - 1;
+    while (lo <= hi) {
+      int mid = lo + (hi - lo) / 2;
+      if (arr[mid] == target) return mid;
+      if (arr[mid] < target) lo = mid + 1;
+      else hi = mid - 1;
+    }
+    return -1;
+  }
+
+  public static void main(String[] args) {
+    Scanner sc = new Scanner(System.in);
+    int n = sc.hasNextInt() ? sc.nextInt() : 0;
+    int[] arr = new int[n];
+    for (int i = 0; i < n; i++) arr[i] = sc.nextInt();
+    int target = sc.hasNextInt() ? sc.nextInt() : 0;
+    System.out.print(solve(arr, target));
+  }
+}`,
+  },
 };
 
 const makeLanguageStarter = (problem, language) => {
@@ -568,9 +736,78 @@ const problemBank = [
       { input: '3\n1 2\n6 7\n3 5', expected: '1 2\n3 5\n6 7' },
     ],
   },
+  {
+    id: 'factorial',
+    title: 'Factorial Number',
+    level: 'Easy',
+    statement: 'Given n, return n! (factorial of n).',
+    hint: 'Use a loop from 2 to n and keep multiplying.',
+    editorial: 'Initialize ans = 1 and multiply all integers up to n. Time O(n), space O(1).',
+    functionName: 'solve',
+    starterCode: `function solve(n) {
+  // Write your code here
+  return 1;
+}`,
+    tests: [
+      { input: [0], expected: 1 },
+      { input: [5], expected: 120 },
+      { input: [7], expected: 5040 },
+    ],
+    ioTests: [
+      { input: '0', expected: '1' },
+      { input: '5', expected: '120' },
+      { input: '7', expected: '5040' },
+    ],
+  },
+  {
+    id: 'reverse-words',
+    title: 'Reverse Words In A Sentence',
+    level: 'Medium',
+    statement: 'Given a sentence, reverse the order of words. Remove extra spaces in output.',
+    hint: 'Split by whitespace and join in reverse order.',
+    editorial: 'Tokenize words, reverse the token array, and join by single spaces. Time O(n).',
+    functionName: 'solve',
+    starterCode: `function solve(s) {
+  // Write your code here
+  return '';
+}`,
+    tests: [
+      { input: ['hello world'], expected: 'world hello' },
+      { input: ['  code   in   js  '], expected: 'js in code' },
+      { input: ['single'], expected: 'single' },
+    ],
+    ioTests: [
+      { input: 'hello world', expected: 'world hello' },
+      { input: '  code   in   js  ', expected: 'js in code' },
+      { input: 'single', expected: 'single' },
+    ],
+  },
+  {
+    id: 'binary-search',
+    title: 'Binary Search Index',
+    level: 'Medium',
+    statement: 'Given sorted array and target, return index of target, else -1.',
+    hint: 'Use low/high pointers and mid index.',
+    editorial: 'Classic binary search runs in O(log n) by discarding half each step.',
+    functionName: 'solve',
+    starterCode: `function solve(arr, target) {
+  // Write your code here
+  return -1;
+}`,
+    tests: [
+      { input: [[1, 3, 5, 7, 9], 7], expected: 3 },
+      { input: [[2, 4, 6, 8], 5], expected: -1 },
+      { input: [[10], 10], expected: 0 },
+    ],
+    ioTests: [
+      { input: '5\n1 3 5 7 9\n7', expected: '3' },
+      { input: '4\n2 4 6 8\n5', expected: '-1' },
+      { input: '1\n10\n10', expected: '0' },
+    ],
+  },
 ];
 
-const runCodeOnLocalService = async ({ language, code, timeout = 45000 }) => {
+const runCodeOnLocalService = async ({ language, code, stdin = '', timeout = 45000 }) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
@@ -579,7 +816,7 @@ const runCodeOnLocalService = async ({ language, code, timeout = 45000 }) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
-      body: JSON.stringify({ language, code }),
+      body: JSON.stringify({ language, code, stdin }),
     });
 
     const data = await response.json();
@@ -793,50 +1030,70 @@ const Resources = ({ ideOnly = false }) => {
 
   const goToProblemSolving = () => navigate('/resources/problem-solving');
 
+  const getExecutionTimeout = (language) => {
+    if (language === 'Java' || language === 'C++') return 60000;
+    return 45000;
+  };
+
   const runCode = async () => {
     setIsRunning(true);
     setRunFeedback(null);
-    const result = await runCodeOnLocalService({
-      language: selectedLanguage,
-      code: editorCode,
-      timeout:
-        selectedLanguage === 'Java'
-          ? 60000
-          : selectedLanguage === 'C++'
-            ? 60000
-            : selectedLanguage === 'Python'
-              ? 45000
-              : 45000,
-    });
+    const timeout = getExecutionTimeout(selectedLanguage);
+    const ioTests = selectedProblem.ioTests?.length ? selectedProblem.ioTests : [{ input: '', expected: '' }];
+    const testResults = [];
+    let passed = 0;
+
+    for (let idx = 0; idx < ioTests.length; idx += 1) {
+      const testCase = ioTests[idx];
+      const result = await runCodeOnLocalService({
+        language: selectedLanguage,
+        code: editorCode,
+        stdin: testCase.input,
+        timeout,
+      });
+
+      if (!result.ok) {
+        testResults.push({
+          index: idx + 1,
+          passed: false,
+          input: testCase.input,
+          expected: normalizeOutput(testCase.expected),
+          actual: '',
+          error: result.error,
+        });
+        continue;
+      }
+
+      const actual = normalizeOutput(result.output);
+      const expected = normalizeOutput(testCase.expected);
+      const isPassed = actual === expected;
+      if (isPassed) passed += 1;
+
+      testResults.push({
+        index: idx + 1,
+        passed: isPassed,
+        input: testCase.input,
+        expected,
+        actual,
+        error: null,
+      });
+    }
 
     setIsRunning(false);
-    if (result.ok) {
-      setRunFeedback({ ok: true, output: normalizeOutput(result.output) || '(no output)' });
-    } else {
-      setRunFeedback({ ok: false, error: result.error });
-    }
 
-    if (result.ok) {
-      saveSubmission({
-        problemId: selectedProblem.id,
-        title: selectedProblem.title,
-        language: selectedLanguage,
-        passed: 1,
-        total: 1,
-        status: 'Success',
-        createdAt: new Date().toISOString(),
-      });
-    } else {
-      saveSubmission({
-        problemId: selectedProblem.id,
-        title: selectedProblem.title,
-        language: selectedLanguage,
-        passed: 0,
-        total: 1,
-        status: 'Error',
-        createdAt: new Date().toISOString(),
-      });
-    }
+    const total = ioTests.length;
+    const allPassed = total > 0 && passed === total;
+    setRunFeedback({ ok: allPassed, passed, total, testResults });
+
+    saveSubmission({
+      problemId: selectedProblem.id,
+      title: selectedProblem.title,
+      language: selectedLanguage,
+      passed,
+      total,
+      status: allPassed ? 'Success' : 'Failed',
+      createdAt: new Date().toISOString(),
+    });
   };
 
   return (
@@ -1114,25 +1371,33 @@ const Resources = ({ ideOnly = false }) => {
 
               {runFeedback && (
                 <div className="mt-4 rounded-xl border-[3px] border-black bg-[var(--color-comic-cream)] p-4">
-                  {runFeedback.ok ? (
-                    <>
-                      <div className="mb-3 flex items-center gap-2 text-sm font-black text-black">
-                        <CheckCircle2 size={16} className="text-gfg-green" />
-                        Program executed successfully
+                  <div className={`mb-3 flex items-center gap-2 text-sm font-black ${runFeedback.ok ? 'text-gfg-green' : 'text-red-700'}`}>
+                    {runFeedback.ok ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                    <span>{runFeedback.ok ? 'All test cases passed' : 'Some test cases failed'} ({runFeedback.passed}/{runFeedback.total})</span>
+                  </div>
+
+                  <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                    {runFeedback.testResults?.map((result) => (
+                      <div
+                        key={result.index}
+                        className={`rounded-lg border-[2px] border-black p-3 ${result.passed ? 'bg-[#dcfce7]' : 'bg-[#fee2e2]'}`}
+                      >
+                        <p className="text-xs font-black uppercase text-black">
+                          Test #{result.index} • {result.passed ? 'Pass' : 'Fail'}
+                        </p>
+                        {result.error ? (
+                          <p className="mt-1 whitespace-pre-wrap break-words text-xs font-bold text-red-700">{result.error}</p>
+                        ) : (
+                          <>
+                            <p className="mt-1 text-[11px] font-black uppercase text-black/70">Expected</p>
+                            <pre className="whitespace-pre-wrap break-words rounded bg-white p-2 font-mono text-xs text-black">{result.expected || '(empty)'}</pre>
+                            <p className="mt-2 text-[11px] font-black uppercase text-black/70">Actual</p>
+                            <pre className="whitespace-pre-wrap break-words rounded bg-white p-2 font-mono text-xs text-black">{result.actual || '(empty)'}</pre>
+                          </>
+                        )}
                       </div>
-                      <div className="rounded-lg border-[2px] border-black bg-white p-3">
-                        <p className="mb-2 text-xs font-black uppercase text-black">Output</p>
-                        <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-black">
-                          {runFeedback.output}
-                        </pre>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex items-start gap-2 text-sm font-black text-red-700">
-                      <XCircle size={16} className="mt-0.5" />
-                      <span>{runFeedback.error}</span>
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </div>
               )}
 

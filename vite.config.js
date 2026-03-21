@@ -6,7 +6,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
-const runProcess = ({ command, args, cwd, timeout = 8000 }) =>
+const runProcess = ({ command, args, cwd, timeout = 8000, input = '' }) =>
   new Promise((resolve) => {
     const child = spawn(command, args, {
       cwd,
@@ -36,6 +36,11 @@ const runProcess = ({ command, args, cwd, timeout = 8000 }) =>
       resolve({ ok: false, stderr: err.message || 'Failed to start process.' })
     })
 
+    if (typeof input === 'string' && input.length > 0) {
+      child.stdin.write(input)
+    }
+    child.stdin.end()
+
     child.on('close', (code) => {
       clearTimeout(timer)
       if (timedOut) {
@@ -64,7 +69,7 @@ const compilerApiPlugin = () => ({
 
       req.on('end', async () => {
         try {
-          const { language, code } = JSON.parse(raw || '{}')
+          const { language, code, stdin } = JSON.parse(raw || '{}')
           if (!language || !code) {
             res.statusCode = 400
             res.setHeader('Content-Type', 'application/json')
@@ -80,11 +85,11 @@ const compilerApiPlugin = () => ({
             if (language === 'JavaScript') {
               const filePath = path.join(tmpDir, 'main.js')
               await writeFile(filePath, code, 'utf8')
-              result = await runProcess({ command: 'node', args: ['main.js'], cwd: tmpDir })
+              result = await runProcess({ command: 'node', args: ['main.js'], cwd: tmpDir, input: stdin || '' })
             } else if (language === 'Python') {
               const filePath = path.join(tmpDir, 'main.py')
               await writeFile(filePath, code, 'utf8')
-              result = await runProcess({ command: 'python', args: ['main.py'], cwd: tmpDir })
+              result = await runProcess({ command: 'python', args: ['main.py'], cwd: tmpDir, input: stdin || '' })
             } else if (language === 'Java') {
               const filePath = path.join(tmpDir, 'Main.java')
               await writeFile(filePath, code, 'utf8')
@@ -92,7 +97,7 @@ const compilerApiPlugin = () => ({
               if (!compile.ok) {
                 result = { ok: false, stderr: compile.stderr || 'Java compilation failed.' }
               } else {
-                result = await runProcess({ command: 'java', args: ['Main'], cwd: tmpDir, timeout: 12000 })
+                result = await runProcess({ command: 'java', args: ['Main'], cwd: tmpDir, timeout: 12000, input: stdin || '' })
               }
             } else if (language === 'C++') {
               res.statusCode = 501
